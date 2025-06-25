@@ -3,432 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PixelArt Studio</title>
+    <title>SolveCat</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* Custom styles for the pixel grid and general aesthetics */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #1e1e2d; /* Dark background */
-            color: #e0e0e0;
-            overflow: hidden; /* Prevent scrolling */
         }
-        canvas {
-            border: 1px solid #4a4a5c;
-            background-color: #2a2a3a; /* Canvas background */
-            cursor: crosshair;
-        }
-        .tool-button, .action-button, .palette-preview-item {
-            transition: all 0.2s ease-in-out;
-        }
-        .tool-button:hover, .action-button:hover, .palette-preview-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-        }
-        .tool-button.active {
-            background-color: #6366f1; /* Indigo-500 for active tool */
-            color: white;
-            border-color: #6366f1;
-        }
-        /* Style for individual color swatches (now square with rounded corners) */
-        .color-swatch {
-            border-radius: 0.375rem; /* rounded-md */
-            width: 2rem; /* w-8 */
-            height: 2rem; /* h-8 */
-            cursor: pointer;
-            border: 2px solid transparent;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            transition: border-color 0.1s ease-in-out, transform 0.1s ease-in-out;
-        }
-        .color-swatch:hover {
-            border-color: #a78bfa; /* Hover border for better feedback */
-            transform: scale(1.05);
-        }
-
-        /* Styles for the new visual palette selector */
-        .palette-preview-item {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 0.5rem;
-            background-color: #3a3a4a; /* Darker background for preview items */
-            border-radius: 0.5rem; /* rounded-lg */
-            cursor: pointer;
-            border: 2px solid transparent;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-            text-align: center;
-            font-size: 0.8rem;
-            font-weight: 500;
-            color: #c0c0c0;
-            flex-direction: column;
-        }
-        .palette-preview-item:hover {
-            border-color: #6366f1; /* Highlight on hover */
-            transform: translateY(-3px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.4);
-        }
-        .palette-preview-item.active-palette {
-            border-color: #6366f1; /* Active palette border */
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.7);
-            background-color: #333345;
-        }
-        .mini-color-strip {
-            display: flex;
-            width: 100%;
-            height: 1rem; /* Height for the mini color display */
-            margin-bottom: 0.5rem;
-            border-radius: 0.25rem; /* rounded */
-            overflow: hidden; /* Ensure colors stay within bounds */
-        }
-        .mini-color-block {
-            flex-grow: 1; /* Distribute space evenly */
-            height: 100%;
+        /* Custom style to prevent blurring on pixel art images */
+        .pixelated-img {
+            image-rendering: optimizeSpeed; /* Older versions of FF */
+            image-rendering: -moz-crisp-edges; /* Firefox */
+            image-rendering: -o-crisp-edges; /* Opera */
+            image-rendering: -webkit-optimize-contrast; /* Webkit (Non-standard property) */
+            image-rendering: pixelated; /* CSS4 Proposed */
+            -ms-interpolation-mode: nearest-neighbor; /* IE8+ */
         }
     </style>
 </head>
-<body class="flex h-screen overflow-hidden">
-
-    <!-- Main Container -->
-    <div class="flex flex-1">
-
-        <!-- Left Sidebar - Tools -->
-        <div class="w-20 bg-[#2a2a3a] p-4 flex flex-col items-center shadow-lg rounded-r-xl z-10">
-            <h2 class="text-xs font-semibold uppercase text-gray-400 mb-6 mt-2 tracking-wide">Tools</h2>
-            <div class="flex flex-col space-y-4">
-                <!-- Pencil Tool -->
-                <button id="pencilTool" class="tool-button active p-3 rounded-full bg-indigo-600 text-white shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                </button>
-                <!-- Eraser Tool -->
-                <button id="eraserTool" class="tool-button p-3 rounded-full bg-gray-700 text-gray-200 shadow-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                </button>
-                <!-- Clear Canvas -->
-                <button id="clearCanvas" class="action-button p-3 rounded-full bg-red-600 text-white shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-75 mt-8">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                </button>
-            </div>
-        </div>
-
-        <!-- Main Content Area -->
-        <div class="flex flex-col flex-1 p-8 items-center justify-center relative">
-            <h1 class="text-4xl font-extrabold mb-8 text-white tracking-tight">
-                <span class="text-indigo-400">Pixel</span>Art Studio
-            </h1>
-
-            <!-- Canvas Container -->
-            <div class="bg-[#2a2a3a] shadow-2xl rounded-lg p-4 flex items-center justify-center mb-8 relative" style="width: calc(100vh - 200px); height: calc(100vh - 200px);">
-                <canvas id="pixelCanvas" class="rounded-md" width="500" height="500"></canvas>
-            </div>
-
-            <!-- Download Button -->
-            <button id="downloadBtn" class="action-button bg-green-500 text-white px-8 py-3 rounded-full text-lg font-semibold shadow-lg hover:bg-green-600 focus:outline-none focus:ring-4 focus:ring-green-500 focus:ring-opacity-75">
-                Download Pixel Art
-            </button>
-        </div>
-
-        <!-- Right Sidebar - Color Palette -->
-        <div class="w-64 bg-[#2a2a3a] p-4 flex flex-col items-center shadow-lg rounded-l-xl z-10">
-            <h2 class="text-xs font-semibold uppercase text-gray-400 mb-6 mt-2 tracking-wide">Colors</h2>
-
-            <!-- Palette Selector (now visual) -->
-            <div class="mb-4 w-full px-2">
-                <label class="block text-gray-400 text-sm font-medium mb-2">Select Palette:</label>
-                <div id="palettePreviews" class="grid grid-cols-2 gap-3 max-h-56 overflow-y-auto pr-2">
-                    <!-- Palette previews will be populated by JavaScript -->
-                </div>
-            </div>
-
-            <div id="colorPalette" class="grid grid-cols-4 gap-2 mt-4">
-                <!-- Color swatches will be populated by JavaScript -->
-            </div>
-            <div class="mt-6 w-full px-2">
-                <label for="customColor" class="block text-gray-400 text-sm font-medium mb-2">Custom Color:</label>
-                <input type="color" id="customColor" value="#FF0000" class="w-full h-10 rounded-md border-none cursor-pointer">
-            </div>
-        </div>
-
+<body class="bg-black flex items-center justify-center min-h-screen transition-all duration-500" id="body-container">
+    <div id="content-container" class="flex flex-col items-center justify-center transition-all duration-500">
+        <!-- SolveCat Logo Image (with hover animation and click event) -->
+        <img id="logo-image" src="https://i.postimg.cc/CxyGDRg5/pixil-frame-0-4.png" alt="SolveCat Main Logo" class="mx-auto mb-0 w-64 h-64 rounded-lg pixelated-img transition-transform duration-300 hover:scale-105 cursor-pointer">
+        <!-- SolveCat Text Image -->
+        <img id="text-image" src="https://i.postimg.cc/q77bztrY/pixil-frame-0-2.png" alt="SolveCat Text" class="mx-auto rounded-lg max-w-lg h-auto pixelated-img mt-[-16px] transition-all duration-500">
     </div>
 
     <script>
-        // Get canvas and context
-        const canvas = document.getElementById('pixelCanvas');
-        const ctx = canvas.getContext('2d');
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get references to the elements
+            const logoImage = document.getElementById('logo-image');
+            const textImage = document.getElementById('text-image');
+            const contentContainer = document.getElementById('content-container');
+            const bodyContainer = document.getElementById('body-container');
 
-        // Pixel grid settings
-        const PIXEL_SIZE = 20; // Size of each pixel cell
-        let COLS;
-        let ROWS;
+            let isMoved = false; // State to track the current position
 
-        // Drawing state
-        let isDrawing = false;
-        let currentColor = '#FF0000'; // Default color: Red
-        let activeTool = 'pencil'; // Default tool
-        let activePaletteId = 'default'; // Keep track of the currently active palette
+            // Add a click event listener to the logo image
+            logoImage.addEventListener('click', () => {
+                if (!isMoved) {
+                    // Current state is centered, move to top-left
+                    // Content Container Layout
+                    contentContainer.classList.remove('flex-col', 'justify-center');
+                    contentContainer.classList.add('flex-row', 'items-start', 'justify-center'); // items-start aligns to top, justify-center aligns horizontally
 
-        // Elements
-        const colorPaletteContainer = document.getElementById('colorPalette');
-        const customColorInput = document.getElementById('customColor');
-        const pencilToolBtn = document.getElementById('pencilTool');
-        const eraserToolBtn = document.getElementById('eraserTool');
-        const clearCanvasBtn = document.getElementById('clearCanvas');
-        const downloadBtn = document.getElementById('downloadBtn');
-        const palettePreviewsContainer = document.getElementById('palettePreviews');
+                    // Body Container Positioning
+                    bodyContainer.classList.remove('items-center', 'justify-center');
+                    // Changed pt-16 to pt-32 to move it further down from the absolute top
+                    bodyContainer.classList.add('items-start', 'pt-32'); 
 
-        // Predefined Color Palettes
-        const palettes = {
-            default: [
-                // Red Tones
-                '#FFEBEE', '#FFCDD2', '#EF9A9A', '#F44336', '#D32F2F', '#B71C1C', '#8A0000',
-                // Green Tones
-                '#E8F5E9', '#C8E6C9', '#A5D6A7', '#4CAF50', '#388E3C', '#1B5E20', '#004D00',
-                // Blue Tones
-                '#E3F2FD', '#BBDEFB', '#90CAF9', '#2196F3', '#1976D2', '#0D47A1', '#00287D',
-                // White/Gray Tones
-                '#FFFFFF', '#F5F5F5', '#E0E0E0', '#BDBDBD', '#9E9E9E', '#757575', '#424242',
-                // Black/Dark Gray Tones
-                '#212121', '#000000', '#2C2C2C', '#1A1A1A', '#0A0A0A', '#1F1F1F', '#050505',
-                // Orange Tones
-                '#FFF3E0', '#FFE0B2', '#FFCC80', '#FF9800', '#F57C00', '#EF6C00', '#E65100',
-                // Pink Tones
-                '#FCE4EC', '#F8BBD0', '#F48FB1', '#E91E63', '#C2185B', '#AD1457', '#880E4F',
-                // Purple Tones
-                '#EDE7F6', '#D1C4E9', '#B39DDB', '#9C27B0', '#7B1FA2', '#6A1B9A', '#4A148C'
-            ],
-            vintage: [
-                '#5C4B51', '#8C7851', '#C6A49A', '#F2E3BC',
-                '#726A95', '#A5678B', '#DA627D', '#F9F8F8',
-                '#967AA1', '#E7D39A', '#F7E7DC', '#A1BE95',
-                '#805D56', '#D6BA9D', '#F3DDC4', '#EAE7AF'
-            ],
-            cyberpunk: [
-                '#000000', '#1B0033', '#0A001A', '#0F0026',
-                '#FF00FF', '#00FFFF', '#00FF00', '#FFFF00',
-                '#FF206E', '#41B8D5', '#3A0CA3', '#7209B7',
-                '#F72585', '#3A0CA3', '#4CC9F0', '#B5179E'
-            ],
-            nature: [
-                '#4A6B3D', '#6B8E23', '#A0C49D', '#C2F970',
-                '#2D5C3E', '#4E7D6A', '#7BA05B', '#A7D47C',
-                '#8B4513', '#D2B48C', '#F5DEB3', '#8B0000',
-                '#556B2F', '#6B8E23', '#9ACD32', '#3CB371'
-            ],
-            pastel: [
-                '#FFD1DC', '#FFABAB', '#FFC3A0', '#FF677D',
-                '#E0BBE4', '#957DAD', '#D291BC', '#FFC72C',
-                '#A7E9AF', '#85E3FF', '#BFFCC6', '#FFFFB5',
-                '#EAEAEA', '#F6F6F6', '#DCDCDC', '#BDBDBD'
-            ],
-            ocean: [
-                '#0A1128', '#001F54', '#034078', '#0A5AA8',
-                '#007EA7', '#00A8E8', '#64B6EE', '#98D2EB',
-                '#ADD8E6', '#B0E0E6', '#C6E2E9', '#E0FFFF'
-            ],
-            fire: [
-                '#2D0000', '#5F0000', '#8D0000', '#B00000',
-                '#D40000', '#FF0000', '#FF4500', '#FF8C00',
-                '#FFA500', '#FFD700', '#FFFF00'
-            ]
-        };
+                    // Text Image Positioning & Size
+                    textImage.classList.remove('mt-[-16px]'); // Remove negative margin
+                    textImage.classList.add('ml-4', 'mt-0'); // Add left margin for spacing and reset top margin
+                    textImage.classList.remove('max-w-lg');
+                    textImage.classList.add('max-w-xs'); // Smaller max-width for text
 
-        // Initial setup for canvas size based on its container
-        function resizeCanvas() {
-            const container = canvas.parentElement;
-            // Set canvas dimensions to be a multiple of PIXEL_SIZE
-            canvas.width = Math.floor(container.clientWidth / PIXEL_SIZE) * PIXEL_SIZE;
-            canvas.height = Math.floor(container.clientHeight / PIXEL_SIZE) * PIXEL_SIZE;
+                    // Logo Image Size
+                    logoImage.classList.remove('w-64', 'h-64');
+                    logoImage.classList.add('w-32', 'h-32'); // Smaller size for logo
 
-            COLS = canvas.width / PIXEL_SIZE;
-            ROWS = canvas.height / PIXEL_SIZE;
-            drawGrid(); // Redraw grid after resizing
-        }
+                } else {
+                    // Current state is top-left, move back to centered
+                    // Content Container Layout
+                    contentContainer.classList.remove('flex-row', 'items-start', 'justify-center');
+                    contentContainer.classList.add('flex-col', 'justify-center');
 
-        // Draw the pixel grid
-        function drawGrid() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear existing content
-            // Draw horizontal lines
-            for (let i = 0; i <= ROWS; i++) {
-                ctx.beginPath();
-                ctx.moveTo(0, i * PIXEL_SIZE);
-                ctx.lineTo(canvas.width, i * PIXEL_SIZE);
-                ctx.strokeStyle = '#3a3a4a'; // Grid line color
-                ctx.stroke();
-            }
-            // Draw vertical lines
-            for (let i = 0; i <= COLS; i++) {
-                ctx.beginPath();
-                ctx.moveTo(i * PIXEL_SIZE, 0);
-                ctx.lineTo(i * PIXEL_SIZE, canvas.height);
-                ctx.strokeStyle = '#3a3a4a'; // Grid line color
-                ctx.stroke();
-            }
-        }
+                    // Body Container Positioning
+                    // Revert pt-32 to initial centering
+                    bodyContainer.classList.remove('items-start', 'pt-32');
+                    bodyContainer.classList.add('items-center', 'justify-center');
 
-        // Draw a single pixel
-        function drawPixel(x, y, color) {
-            const col = Math.floor(x / PIXEL_SIZE);
-            const row = Math.floor(y / PIXEL_SIZE);
+                    // Text Image Positioning & Size
+                    textImage.classList.remove('ml-4', 'mt-0'); // Remove left margin and reset top margin
+                    textImage.classList.add('mt-[-16px]'); // Restore negative margin
+                    textImage.classList.remove('max-w-xs');
+                    textImage.classList.add('max-w-lg'); // Restore original max-width for text
 
-            if (col >= 0 && col < COLS && row >= 0 && row < ROWS) {
-                ctx.fillStyle = color;
-                ctx.fillRect(col * PIXEL_SIZE, row * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
-                // Redraw grid line over the pixel to maintain visibility
-                ctx.strokeStyle = '#3a3a4a';
-                ctx.strokeRect(col * PIXEL_SIZE, row * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
-            }
-        }
+                    // Logo Image Size
+                    logoImage.classList.remove('w-32', 'h-32');
+                    logoImage.classList.add('w-64', 'h-64'); // Restore original size for logo
+                }
 
-        // Handle mouse down event
-        canvas.addEventListener('mousedown', (e) => {
-            isDrawing = true;
-            draw(e);
-        });
-
-        // Handle mouse move event
-        canvas.addEventListener('mousemove', (e) => {
-            if (isDrawing) {
-                draw(e);
-            }
-        });
-
-        // Handle mouse up and leave events
-        canvas.addEventListener('mouseup', () => {
-            isDrawing = false;
-        });
-        canvas.addEventListener('mouseleave', () => {
-            isDrawing = false;
-        });
-
-        // Drawing function
-        function draw(e) {
-            const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-
-            if (activeTool === 'pencil') {
-                drawPixel(x, y, currentColor);
-            } else if (activeTool === 'eraser') {
-                drawPixel(x, y, '#2a2a3a'); // Erase by drawing with canvas background color
-            }
-        }
-
-        // Function to populate main color palette
-        function populateColorPalette(colors) {
-            colorPaletteContainer.innerHTML = ''; // Clear existing swatches
-            colors.forEach(color => {
-                const swatch = document.createElement('div');
-                // Updated class for square with rounded corners
-                swatch.className = 'color-swatch rounded-md w-8 h-8 cursor-pointer border-2 border-transparent hover:border-indigo-400 shadow-md';
-                swatch.style.backgroundColor = color;
-                swatch.addEventListener('click', () => {
-                    currentColor = color;
-                    customColorInput.value = color; // Update custom color input
-                });
-                colorPaletteContainer.appendChild(swatch);
+                // Toggle the state
+                isMoved = !isMoved;
             });
-            // Set initial current color from the first color of the newly loaded palette
-            if (colors.length > 0) {
-                currentColor = colors[0];
-                customColorInput.value = colors[0];
-            }
-        }
-
-        // Function to populate palette previews
-        function populatePalettePreviews() {
-            palettePreviewsContainer.innerHTML = ''; // Clear existing previews
-            for (const paletteId in palettes) {
-                const paletteColors = palettes[paletteId];
-                const previewItem = document.createElement('div');
-                previewItem.className = `palette-preview-item ${paletteId === activePaletteId ? 'active-palette' : ''}`;
-                previewItem.dataset.paletteId = paletteId;
-
-                const miniColorStrip = document.createElement('div');
-                miniColorStrip.className = 'mini-color-strip';
-
-                // Display up to 5 colors from the palette for preview
-                const colorsToSample = paletteColors.slice(0, Math.min(paletteColors.length, 5));
-                colorsToSample.forEach(color => {
-                    const miniColorBlock = document.createElement('div');
-                    miniColorBlock.className = 'mini-color-block';
-                    miniColorBlock.style.backgroundColor = color;
-                    miniColorStrip.appendChild(miniColorBlock);
-                });
-
-                const paletteName = document.createElement('span');
-                // Capitalize the first letter of the palette ID for display
-                paletteName.textContent = paletteId.charAt(0).toUpperCase() + paletteId.slice(1).replace(/([A-Z])/g, ' $1').trim();
-
-                previewItem.appendChild(miniColorStrip);
-                previewItem.appendChild(paletteName);
-
-                previewItem.addEventListener('click', () => {
-                    // Remove active class from previous palette
-                    const currentActive = document.querySelector('.palette-preview-item.active-palette');
-                    if (currentActive) {
-                        currentActive.classList.remove('active-palette');
-                    }
-                    // Add active class to clicked palette
-                    previewItem.classList.add('active-palette');
-                    activePaletteId = paletteId; // Update active palette ID
-                    populateColorPalette(paletteColors); // Load the full palette
-                });
-                palettePreviewsContainer.appendChild(previewItem);
-            }
-        }
-
-        // Custom color input handler
-        customColorInput.addEventListener('input', (e) => {
-            currentColor = e.target.value;
         });
-
-        // Tool selection
-        pencilToolBtn.addEventListener('click', () => {
-            activeTool = 'pencil';
-            pencilToolBtn.classList.add('active');
-            pencilToolBtn.classList.remove('bg-gray-700', 'text-gray-200');
-            pencilToolBtn.classList.add('bg-indigo-600', 'text-white');
-
-            eraserToolBtn.classList.remove('active');
-            eraserToolBtn.classList.remove('bg-indigo-600', 'text-white');
-            eraserToolBtn.classList.add('bg-gray-700', 'text-gray-200');
-        });
-
-        eraserToolBtn.addEventListener('click', () => {
-            activeTool = 'eraser';
-            eraserToolBtn.classList.add('active');
-            eraserToolBtn.classList.remove('bg-gray-700', 'text-gray-200');
-            eraserToolBtn.classList.add('bg-indigo-600', 'text-white');
-
-            pencilToolBtn.classList.remove('active');
-            pencilToolBtn.classList.remove('bg-indigo-600', 'text-white');
-            pencilToolBtn.classList.add('bg-gray-700', 'text-gray-200');
-        });
-
-        // Clear canvas functionality
-        clearCanvasBtn.addEventListener('click', () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawGrid(); // Redraw the empty grid
-        });
-
-        // Download functionality
-        downloadBtn.addEventListener('click', () => {
-            const link = document.createElement('a');
-            link.download = 'pixel_art.png';
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-        });
-
-        // Initialize on window load and handle resize
-        window.onload = function() {
-            resizeCanvas(); // Set initial canvas size and draw grid
-            populatePalettePreviews(); // Populate the visual palette selector
-            populateColorPalette(palettes[activePaletteId]); // Load the default palette on startup
-        };
-        window.addEventListener('resize', resizeCanvas); // Adjust canvas on window resize
-
-        // Initial active tool styling
-        pencilToolBtn.click(); // Set pencil as active by default
     </script>
 </body>
 </html>
