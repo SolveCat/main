@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>HUF Calc Pro</title>
+    <title>HUF Calc No-KB</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <style>
         :root {
             --bg: #000000;
@@ -17,23 +16,24 @@
             --text-dim: #a0a0a0;
         }
 
-        /* Blokada zaznaczania tekstu i domyślnych zachowań */
+        /* Blokada jakiejkolwiek interakcji tekstowej */
         * {
             -webkit-user-select: none;
             user-select: none;
             -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
             background-color: var(--bg);
-            color: var(--text-main);
             margin: 0;
             height: 100vh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            touch-action: none; /* Całkowita blokada gestów przeglądarki */
+            touch-action: none;
         }
 
         .top-section {
@@ -44,24 +44,13 @@
         }
 
         .display-area {
-            padding: 25px 20px;
+            padding: 30px 20px;
             text-align: right;
             background: linear-gradient(to bottom, #2c2c2e, #000);
         }
 
-        #huf-input { 
-            font-size: 4rem; 
-            font-weight: 700; 
-            margin: 0; 
-            white-space: nowrap; 
-            overflow: hidden;
-        }
-        #pln-result { 
-            font-size: 2rem; 
-            color: var(--accent); 
-            margin-top: 5px; 
-            font-weight: 600; 
-        }
+        #huf-input { font-size: 4rem; font-weight: 700; margin: 0; }
+        #pln-result { font-size: 2rem; color: var(--accent); margin-top: 5px; font-weight: 600; }
 
         .summary-bar {
             padding: 15px 20px;
@@ -78,8 +67,7 @@
             flex: 1;
             overflow-y: auto;
             padding: 0 20px;
-            background: var(--bg);
-            touch-action: pan-y; /* Pozwala tylko na przewijanie listy */
+            touch-action: pan-y;
         }
 
         .item {
@@ -91,7 +79,7 @@
             font-size: 1.3rem;
         }
 
-        /* DÓŁ - NumPad */
+        /* NUMPAD - Używamy DIV zamiast BUTTON */
         .numpad {
             height: 55vh;
             display: grid;
@@ -100,11 +88,9 @@
             gap: 2px;
             background: #444;
             padding-bottom: env(safe-area-inset-bottom);
-            touch-action: none;
         }
 
-        button {
-            border: none;
+        .key {
             background: var(--btn-num);
             color: white;
             font-size: 2.5rem;
@@ -112,12 +98,10 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            /* To zapobiega wywoływaniu klawiatury i zoomu */
-            touch-action: manipulation;
-            outline: none;
+            cursor: pointer;
         }
 
-        button:active { background: #444; }
+        .key:active { background: #444; }
 
         .btn-add { 
             background: var(--accent); 
@@ -127,10 +111,9 @@
             font-size: 1.8rem;
             text-transform: uppercase;
         }
-        .btn-danger { color: var(--danger); font-weight: 800; }
+        .btn-danger { color: var(--danger); }
         
         .clear-list-btn { 
-            background: rgba(255, 69, 58, 0.1); 
             border: 1px solid var(--danger); 
             color: var(--danger); 
             font-size: 0.9rem; 
@@ -139,9 +122,9 @@
         }
     </style>
 </head>
-<body>
+<body inputmode="none">
 
-    <div class="top-section">
+    <div class="top-section" inputmode="none">
         <div class="display-area">
             <div id="huf-input">0</div>
             <div id="pln-result">≈ 0.00 PLN</div>
@@ -152,39 +135,39 @@
                 <span id="total-val" class="total-value">0.00</span>
                 <span style="color:var(--text-dim)"> PLN</span>
             </div>
-            <button class="clear-list-btn" onclick="clearAll()">WYCZYŚĆ</button>
+            <div class="clear-list-btn" onclick="clearAll()">WYCZYŚĆ</div>
         </div>
 
         <div class="history-list" id="history-box"></div>
     </div>
 
-    <div class="numpad">
-        <button type="button" onclick="press('1')">1</button>
-        <button type="button" onclick="press('2')">2</button>
-        <button type="button" onclick="press('3')">3</button>
-        <button type="button" onclick="press('4')">4</button>
-        <button type="button" onclick="press('5')">5</button>
-        <button type="button" onclick="press('6')">6</button>
-        <button type="button" onclick="press('7')">7</button>
-        <button type="button" onclick="press('8')">8</button>
-        <button type="button" onclick="press('9')">9</button>
-        <button type="button" class="btn-danger" onclick="clr()">C</button>
-        <button type="button" onclick="press('0')">0</button>
-        <button type="button" class="btn-danger" onclick="del()">⌫</button>
-        <button type="button" class="btn-add" onclick="addExpense()">Dodaj do listy (+)</button>
+    <div class="numpad" inputmode="none">
+        <div class="key" onclick="press('1')">1</div>
+        <div class="key" onclick="press('2')">2</div>
+        <div class="key" onclick="press('3')">3</div>
+        <div class="key" onclick="press('4')">4</div>
+        <div class="key" onclick="press('5')">5</div>
+        <div class="key" onclick="press('6')">6</div>
+        <div class="key" onclick="press('7')">7</div>
+        <div class="key" onclick="press('8')">8</div>
+        <div class="key" onclick="press('9')">9</div>
+        <div class="key btn-danger" onclick="clr()">C</div>
+        <div class="key" onclick="press('0')">0</div>
+        <div class="key btn-danger" onclick="del()">⌫</div>
+        <div class="key btn-add" onclick="addExpense()">Dodaj do listy (+)</div>
     </div>
 
 <script>
-    // Globalna blokada menu kontekstowego (prawy klik/długie przytrzymanie)
-    window.oncontextmenu = function(event) {
-        event.preventDefault();
-        event.stopPropagation();
-        return false;
-    };
+    // Blokada zoomu i menu
+    document.addEventListener('touchstart', (e) => {
+        if (e.touches.length > 1) e.preventDefault();
+    }, { passive: false });
+    
+    window.oncontextmenu = (e) => { e.preventDefault(); return false; };
 
     const RATE = 0.011; 
     let currentInput = "";
-    let logs = JSON.parse(localStorage.getItem('huf_ultra_v6')) || [];
+    let logs = JSON.parse(localStorage.getItem('huf_final')) || [];
 
     function press(n) {
         if (currentInput.length < 10) {
@@ -220,14 +203,14 @@
     }
 
     function clearAll() {
-        if(confirm("Czy na pewno usunąć wszystkie wydatki?")) {
+        if(confirm("Usunąć wszystkie wydatki?")) {
             logs = [];
             save();
         }
     }
 
     function save() {
-        localStorage.setItem('huf_ultra_v6', JSON.stringify(logs));
+        localStorage.setItem('huf_final', JSON.stringify(logs));
         renderList();
     }
 
@@ -240,7 +223,7 @@
                 <span><strong>${i.h.toLocaleString()}</strong> <small style="color:var(--text-dim); font-size:0.8rem;">HUF</small></span>
                 <span>
                     <span style="font-weight:800; color:var(--accent)">${i.p.toFixed(2)}</span>
-                    <button type="button" onclick="removeLog(${i.id})" style="background:none; color:var(--danger); font-size:1.8rem; padding:0 0 0 20px; display:inline; font-weight:bold;">✕</button>
+                    <span onclick="removeLog(${i.id})" style="color:var(--danger); font-size:1.8rem; padding-left:20px; font-weight:bold;">✕</span>
                 </span>
             </div>
         `).join('');
