@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>HUF Calc Pro</title>
+    <title>HUF Calc Ultra</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <style>
@@ -14,11 +14,11 @@
             --danger: #ff453a;
             --btn-num: #2c2c2e;
             --text-main: #ffffff;
-            --text-dim: #8e8e93;
+            --text-dim: #a0a0a0;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Roboto", sans-serif;
             background-color: var(--bg);
             color: var(--text-main);
             margin: 0;
@@ -26,60 +26,74 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            /* Blokada gestów na poziomie body */
-            touch-action: pan-y; 
+            touch-action: pan-y;
         }
 
+        /* GÓRA - Wyświetlacz i Lista */
         .top-section {
-            height: 50vh;
+            height: 45vh; /* Zmniejszone nieco na rzecz klawiatury */
             display: flex;
             flex-direction: column;
             padding-top: env(safe-area-inset-top);
         }
 
         .display-area {
-            padding: 20px;
+            padding: 25px 20px;
             text-align: right;
             background: linear-gradient(to bottom, #2c2c2e, #000);
         }
 
-        #huf-input { font-size: 3.2rem; font-weight: 200; margin: 0; white-space: nowrap; overflow: hidden; }
-        #pln-result { font-size: 1.6rem; color: var(--accent); margin-top: 5px; font-weight: 500; }
+        #huf-input { 
+            font-size: 4rem; /* Ekstra duże cyfry wejściowe */
+            font-weight: 700; 
+            margin: 0; 
+            white-space: nowrap; 
+            overflow: hidden;
+            color: var(--text-main);
+        }
+        #pln-result { 
+            font-size: 2rem; /* Bardzo wyraźny wynik */
+            color: var(--accent); 
+            margin-top: 5px; 
+            font-weight: 600; 
+        }
 
         .summary-bar {
-            padding: 12px 20px;
+            padding: 15px 20px;
             background: #1c1c1e;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 0.5px solid #333;
+            border-bottom: 1px solid #333;
         }
 
-        .total-label { font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase; }
-        .total-value { font-size: 1.4rem; font-weight: bold; color: var(--accent); }
+        .total-label { font-size: 1rem; color: var(--text-dim); font-weight: 500; }
+        .total-value { font-size: 1.8rem; font-weight: 800; color: var(--accent); }
 
         .history-list {
             flex: 1;
             overflow-y: auto;
             padding: 0 20px;
-            -webkit-overflow-scrolling: touch;
+            background: var(--bg);
         }
 
         .item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 0;
-            border-bottom: 0.5px solid #2c2c2e;
+            padding: 18px 0;
+            border-bottom: 1px solid #2c2c2e;
+            font-size: 1.3rem; /* Większe litery na liście */
         }
 
+        /* DÓŁ - NumPad (55% ekranu dla wygody) */
         .numpad {
-            height: 50vh;
+            height: 55vh;
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             grid-template-rows: repeat(5, 1fr);
-            gap: 1px;
-            background: #333;
+            gap: 2px;
+            background: #444;
             padding-bottom: env(safe-area-inset-bottom);
         }
 
@@ -87,13 +101,12 @@
             border: none;
             background: var(--btn-num);
             color: white;
-            font-size: 1.8rem;
-            font-weight: 400;
+            font-size: 2.5rem; /* Gigantyczne cyfry na przyciskach */
+            font-weight: 600;
             display: flex;
             align-items: center;
             justify-content: center;
-            /* KLUCZOWE: wyłącza zoom na przyciskach */
-            touch-action: manipulation; 
+            touch-action: manipulation;
         }
 
         button:active { background: #444; }
@@ -102,24 +115,35 @@
             background: var(--accent); 
             color: black; 
             grid-column: span 3;
-            font-weight: bold;
-            font-size: 1.4rem;
+            font-weight: 800;
+            font-size: 1.8rem; /* Wielki tekst przycisku DODAJ */
             text-transform: uppercase;
         }
-        .btn-danger { color: var(--danger); }
-        .clear-list-btn { background: none; border: 1px solid var(--danger); color: var(--danger); font-size: 0.7rem; padding: 4px 8px; border-radius: 4px; }
+        .btn-danger { color: var(--danger); font-weight: 800; }
+        
+        .clear-list-btn { 
+            background: rgba(255, 69, 58, 0.1); 
+            border: 1px solid var(--danger); 
+            color: var(--danger); 
+            font-size: 0.9rem; 
+            padding: 8px 12px; 
+            border-radius: 6px;
+            font-weight: bold;
+        }
     </style>
 </head>
-<body onclick=""> <div class="top-section">
+<body>
+
+    <div class="top-section">
         <div class="display-area">
-            <div id="huf-input">0 HUF</div>
+            <div id="huf-input">0</div>
             <div id="pln-result">≈ 0.00 PLN</div>
         </div>
 
         <div class="summary-bar">
             <div>
-                <span class="total-label">Suma:</span>
-                <span class="total-value" id="total-val">0.00 PLN</span>
+                <span class="total-label">SUMA:</span>
+                <span class="total-value" id="total-val">0.00</span>
             </div>
             <button class="clear-list-btn" onclick="clearAll()">WYCZYŚĆ</button>
         </div>
@@ -140,39 +164,37 @@
         <button class="btn-danger" onclick="clr()">C</button>
         <button onclick="press('0')">0</button>
         <button class="btn-danger" onclick="del()">⌫</button>
-        <button class="btn-add" onclick="addExpense()">Dodaj do listy +</button>
+        <button class="btn-add" onclick="addExpense()">Dodaj do listy (+)</button>
     </div>
 
 <script>
-    // Blokada double-tap zoom na poziomie iOS
+    // Blokada double-tap zoom
     let lastTouchEnd = 0;
     document.addEventListener('touchend', function (event) {
         const now = (new Date()).getTime();
-        if (now - lastTouchEnd <= 300) {
-            event.preventDefault();
-        }
+        if (now - lastTouchEnd <= 300) event.preventDefault();
         lastTouchEnd = now;
     }, false);
 
     const RATE = 0.011; 
     let currentInput = "";
-    let logs = JSON.parse(localStorage.getItem('huf_v4')) || [];
+    let logs = JSON.parse(localStorage.getItem('huf_ultra_v5')) || [];
 
     function press(n) {
         if (currentInput.length < 10) {
             currentInput += n;
             refreshUI();
-            haptic(10);
+            haptic(15);
         }
     }
 
-    function clr() { currentInput = ""; refreshUI(); haptic(20); }
-    function del() { currentInput = currentInput.slice(0, -1); refreshUI(); haptic(10); }
+    function clr() { currentInput = ""; refreshUI(); haptic(30); }
+    function del() { currentInput = currentInput.slice(0, -1); refreshUI(); haptic(15); }
 
     function refreshUI() {
         const h = parseInt(currentInput) || 0;
         const p = (h * RATE).toFixed(2);
-        document.getElementById('huf-input').innerText = h.toLocaleString() + " HUF";
+        document.getElementById('huf-input').innerText = h.toLocaleString();
         document.getElementById('pln-result').innerText = "≈ " + p + " PLN";
     }
 
@@ -183,7 +205,7 @@
         logs.unshift({id: Date.now(), h, p});
         save();
         clr();
-        haptic(30);
+        haptic(50);
     }
 
     function removeLog(id) {
@@ -192,31 +214,33 @@
     }
 
     function clearAll() {
-        if(confirm("Usunąć wszystkie wydatki?")) {
+        if(confirm("Czy na pewno usunąć wszystkie wydatki?")) {
             logs = [];
             save();
         }
     }
 
     function save() {
-        localStorage.setItem('huf_v4', JSON.stringify(logs));
+        localStorage.setItem('huf_ultra_v5', JSON.stringify(logs));
         renderList();
     }
 
     function renderList() {
         const box = document.getElementById('history-box');
         const total = document.getElementById('total-val');
+        
         box.innerHTML = logs.map(i => `
             <div class="item">
-                <span><b>${i.h.toLocaleString()}</b> <small style="color:var(--text-dim)">HUF</small></span>
+                <span><strong>${i.h.toLocaleString()}</strong> <small style="color:var(--text-dim); font-size:0.8rem;">HUF</small></span>
                 <span>
-                    <span style="font-weight:600">${i.p.toFixed(2)} PLN</span>
-                    <button onclick="removeLog(${i.id})" style="background:none; color:var(--danger); font-size:1.2rem; padding:0 0 0 15px; display:inline">✕</button>
+                    <span style="font-weight:800; color:var(--accent)">${i.p.toFixed(2)}</span> <small style="font-size:0.8rem">PLN</small>
+                    <button onclick="removeLog(${i.id})" style="background:none; color:var(--danger); font-size:1.8rem; padding:0 0 0 20px; display:inline; font-weight:bold;">✕</button>
                 </span>
             </div>
         `).join('');
+
         const sum = logs.reduce((a, b) => a + b.p, 0);
-        total.innerText = sum.toFixed(2) + " PLN";
+        total.innerText = sum.toFixed(2);
     }
 
     function haptic(ms) {
