@@ -3,37 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>HUF Calc No-KB</title>
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>HUF Calc Final</title>
     <style>
-        :root {
-            --bg: #000000;
-            --panel: #1c1c1e;
-            --accent: #32d74b;
-            --danger: #ff453a;
-            --btn-num: #2c2c2e;
-            --text-main: #ffffff;
-            --text-dim: #a0a0a0;
-        }
-
-        /* Blokada jakiejkolwiek interakcji tekstowej */
+        /* Całkowita blokada wszystkiego na poziomie body */
         * {
-            -webkit-user-select: none;
-            user-select: none;
-            -webkit-touch-callout: none;
-            -webkit-tap-highlight-color: transparent;
-            outline: none;
+            -webkit-user-select: none !important;
+            user-select: none !important;
+            -webkit-tap-highlight-color: transparent !important;
+            touch-action: none !important;
+            box-sizing: border-box;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: var(--bg);
+            font-family: -apple-system, system-ui, sans-serif;
+            background-color: #000000 !important;
             margin: 0;
             height: 100vh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            touch-action: none;
         }
 
         .top-section {
@@ -41,33 +29,30 @@
             display: flex;
             flex-direction: column;
             padding-top: env(safe-area-inset-top);
+            background-color: #000000 !important;
         }
 
         .display-area {
             padding: 30px 20px;
             text-align: right;
-            background: linear-gradient(to bottom, #2c2c2e, #000);
+            background-color: #000000 !important;
         }
-
-        #huf-input { font-size: 4rem; font-weight: 700; margin: 0; }
-        #pln-result { font-size: 2rem; color: var(--accent); margin-top: 5px; font-weight: 600; }
 
         .summary-bar {
             padding: 15px 20px;
-            background: #1c1c1e;
+            background-color: #1c1c1e !important;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #333;
+            border-bottom: 1px solid #333333;
         }
-
-        .total-value { font-size: 1.8rem; font-weight: 800; color: var(--accent); }
 
         .history-list {
             flex: 1;
             overflow-y: auto;
             padding: 0 20px;
-            touch-action: pan-y;
+            background-color: #000000 !important;
+            touch-action: pan-y !important; /* Tylko tutaj pozwalamy na przesuwanie palcem */
         }
 
         .item {
@@ -76,164 +61,144 @@
             align-items: center;
             padding: 18px 0;
             border-bottom: 1px solid #2c2c2e;
-            font-size: 1.3rem;
         }
 
-        /* NUMPAD - Używamy DIV zamiast BUTTON */
         .numpad {
             height: 55vh;
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             grid-template-rows: repeat(5, 1fr);
             gap: 2px;
-            background: #444;
+            background-color: #444444 !important;
             padding-bottom: env(safe-area-inset-bottom);
         }
 
         .key {
-            background: var(--btn-num);
-            color: white;
-            font-size: 2.5rem;
-            font-weight: 600;
+            background-color: #2c2c2e !important;
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
+            font-size: 2.5rem;
+            font-weight: 600;
         }
 
-        .key:active { background: #444; }
+        .key:active { background-color: #444444 !important; }
 
         .btn-add { 
-            background: var(--accent); 
-            color: black; 
+            background-color: #32d74b !important; 
             grid-column: span 3;
             font-weight: 800;
             font-size: 1.8rem;
             text-transform: uppercase;
         }
-        .btn-danger { color: var(--danger); }
-        
+
         .clear-list-btn { 
-            border: 1px solid var(--danger); 
-            color: var(--danger); 
-            font-size: 0.9rem; 
+            border: 1px solid #ff453a; 
             padding: 8px 12px; 
             border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: bold;
         }
     </style>
 </head>
 <body inputmode="none">
 
-    <div class="top-section" inputmode="none">
+    <div class="top-section">
         <div class="display-area">
-            <div id="huf-input">0</div>
-            <div id="pln-result">≈ 0.00 PLN</div>
+            <div id="huf-input" style="color: #ffffff !important; font-size: 4rem; font-weight: 700;">0</div>
+            <div id="pln-result" style="color: #32d74b !important; font-size: 2rem; font-weight: 600; margin-top: 5px;">≈ 0.00 PLN</div>
         </div>
 
         <div class="summary-bar">
             <div>
-                <span id="total-val" class="total-value">0.00</span>
-                <span style="color:var(--text-dim)"> PLN</span>
+                <span id="total-val" style="color: #32d74b !important; font-size: 1.8rem; font-weight: 800;">0.00</span>
+                <span style="color: #ffffff !important; opacity: 0.6;"> PLN</span>
             </div>
-            <div class="clear-list-btn" onclick="clearAll()">WYCZYŚĆ</div>
+            <div class="clear-list-btn" id="btn-clear-all" style="color: #ff453a !important;">WYCZYŚĆ</div>
         </div>
 
         <div class="history-list" id="history-box"></div>
     </div>
 
-    <div class="numpad" inputmode="none">
-        <div class="key" onclick="press('1')">1</div>
-        <div class="key" onclick="press('2')">2</div>
-        <div class="key" onclick="press('3')">3</div>
-        <div class="key" onclick="press('4')">4</div>
-        <div class="key" onclick="press('5')">5</div>
-        <div class="key" onclick="press('6')">6</div>
-        <div class="key" onclick="press('7')">7</div>
-        <div class="key" onclick="press('8')">8</div>
-        <div class="key" onclick="press('9')">9</div>
-        <div class="key btn-danger" onclick="clr()">C</div>
-        <div class="key" onclick="press('0')">0</div>
-        <div class="key btn-danger" onclick="del()">⌫</div>
-        <div class="key btn-add" onclick="addExpense()">Dodaj do listy (+)</div>
+    <div class="numpad">
+        <div class="key" style="color: #ffffff !important;" data-val="1">1</div>
+        <div class="key" style="color: #ffffff !important;" data-val="2">2</div>
+        <div class="key" style="color: #ffffff !important;" data-val="3">3</div>
+        <div class="key" style="color: #ffffff !important;" data-val="4">4</div>
+        <div class="key" style="color: #ffffff !important;" data-val="5">5</div>
+        <div class="key" style="color: #ffffff !important;" data-val="6">6</div>
+        <div class="key" style="color: #ffffff !important;" data-val="7">7</div>
+        <div class="key" style="color: #ffffff !important;" data-val="8">8</div>
+        <div class="key" style="color: #ffffff !important;" data-val="9">9</div>
+        <div class="key" style="color: #ff453a !important;" data-val="C">C</div>
+        <div class="key" style="color: #ffffff !important;" data-val="0">0</div>
+        <div class="key" style="color: #ff453a !important;" data-val="DEL">⌫</div>
+        <div class="key btn-add" style="color: #000000 !important;" data-val="ADD">DODAJ (+)</div>
     </div>
 
 <script>
-    // Blokada zoomu i menu
-    document.addEventListener('touchstart', (e) => {
-        if (e.touches.length > 1) e.preventDefault();
-    }, { passive: false });
-    
-    window.oncontextmenu = (e) => { e.preventDefault(); return false; };
-
     const RATE = 0.011; 
     let currentInput = "";
-    let logs = JSON.parse(localStorage.getItem('huf_final')) || [];
+    let logs = JSON.parse(localStorage.getItem('huf_final_v9')) || [];
 
-    function press(n) {
-        if (currentInput.length < 10) {
-            currentInput += n;
-            refreshUI();
-            haptic(15);
-        }
+    function handleInput(e) {
+        e.preventDefault();
+        const val = this.getAttribute('data-val');
+        if (val === 'C') currentInput = "";
+        else if (val === 'DEL') currentInput = currentInput.slice(0, -1);
+        else if (val === 'ADD') addExpense();
+        else if (currentInput.length < 10) currentInput += val;
+        refreshUI();
+        if (navigator.vibrate) navigator.vibrate(15);
     }
 
-    function clr() { currentInput = ""; refreshUI(); haptic(30); }
-    function del() { currentInput = currentInput.slice(0, -1); refreshUI(); haptic(15); }
+    document.querySelectorAll('.key').forEach(k => {
+        k.addEventListener('touchstart', handleInput, {passive: false});
+        k.addEventListener('mousedown', handleInput);
+    });
+
+    document.getElementById('btn-clear-all').addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if(confirm("Wyczyścić wszystko?")) { logs = []; save(); }
+    });
 
     function refreshUI() {
         const h = parseInt(currentInput) || 0;
-        const p = (h * RATE).toFixed(2);
         document.getElementById('huf-input').innerText = h.toLocaleString();
-        document.getElementById('pln-result').innerText = "≈ " + p + " PLN";
+        document.getElementById('pln-result').innerText = "≈ " + (h * RATE).toFixed(2) + " PLN";
     }
 
     function addExpense() {
         if (!currentInput || currentInput === "0") return;
-        const h = parseInt(currentInput);
-        const p = parseFloat((h * RATE).toFixed(2));
-        logs.unshift({id: Date.now(), h, p});
+        logs.unshift({id: Date.now(), h: parseInt(currentInput), p: (parseInt(currentInput) * RATE)});
         save();
-        clr();
-        haptic(50);
-    }
-
-    function removeLog(id) {
-        logs = logs.filter(i => i.id !== id);
-        save();
-    }
-
-    function clearAll() {
-        if(confirm("Usunąć wszystkie wydatki?")) {
-            logs = [];
-            save();
-        }
+        currentInput = "";
     }
 
     function save() {
-        localStorage.setItem('huf_final', JSON.stringify(logs));
+        localStorage.setItem('huf_final_v9', JSON.stringify(logs));
         renderList();
     }
 
     function renderList() {
         const box = document.getElementById('history-box');
-        const total = document.getElementById('total-val');
-        
         box.innerHTML = logs.map(i => `
             <div class="item">
-                <span><strong>${i.h.toLocaleString()}</strong> <small style="color:var(--text-dim); font-size:0.8rem;">HUF</small></span>
+                <span style="color: #ffffff !important; font-size: 1.3rem;">
+                    <strong style="color: #ffffff !important;">${i.h.toLocaleString()}</strong> HUF
+                </span>
                 <span>
-                    <span style="font-weight:800; color:var(--accent)">${i.p.toFixed(2)}</span>
-                    <span onclick="removeLog(${i.id})" style="color:var(--danger); font-size:1.8rem; padding-left:20px; font-weight:bold;">✕</span>
+                    <span style="font-weight: 800; color: #32d74b !important; font-size: 1.3rem;">${i.p.toFixed(2)} PLN</span>
+                    <span onclick="removeLog(${i.id})" style="color: #ff453a !important; padding-left: 20px; font-weight: bold; font-size: 1.5rem;">✕</span>
                 </span>
             </div>
         `).join('');
-
-        const sum = logs.reduce((a, b) => a + b.p, 0);
-        total.innerText = sum.toFixed(2);
+        document.getElementById('total-val').innerText = logs.reduce((a, b) => a + b.p, 0).toFixed(2);
     }
 
-    function haptic(ms) {
-        if (window.navigator.vibrate) window.navigator.vibrate(ms);
+    function removeLog(id) {
+        logs = logs.filter(i => i.id !== id);
+        save();
     }
 
     renderList();
