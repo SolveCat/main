@@ -26,9 +26,10 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            /* Blokada gestów na poziomie body */
+            touch-action: pan-y; 
         }
 
-        /* GÓRA: 50% Ekranu na podgląd i listę */
         .top-section {
             height: 50vh;
             display: flex;
@@ -42,19 +43,8 @@
             background: linear-gradient(to bottom, #2c2c2e, #000);
         }
 
-        #huf-input { 
-            font-size: 3.2rem; 
-            font-weight: 200; 
-            margin: 0; 
-            white-space: nowrap;
-            overflow: hidden;
-        }
-        #pln-result { 
-            font-size: 1.6rem; 
-            color: var(--accent); 
-            margin-top: 5px; 
-            font-weight: 500;
-        }
+        #huf-input { font-size: 3.2rem; font-weight: 200; margin: 0; white-space: nowrap; overflow: hidden; }
+        #pln-result { font-size: 1.6rem; color: var(--accent); margin-top: 5px; font-weight: 500; }
 
         .summary-bar {
             padding: 12px 20px;
@@ -83,7 +73,6 @@
             border-bottom: 0.5px solid #2c2c2e;
         }
 
-        /* DÓŁ: 50% Ekranu na NumPad */
         .numpad {
             height: 50vh;
             display: grid;
@@ -100,10 +89,11 @@
             color: white;
             font-size: 1.8rem;
             font-weight: 400;
-            transition: background 0.1s;
             display: flex;
             align-items: center;
             justify-content: center;
+            /* KLUCZOWE: wyłącza zoom na przyciskach */
+            touch-action: manipulation; 
         }
 
         button:active { background: #444; }
@@ -116,22 +106,11 @@
             font-size: 1.4rem;
             text-transform: uppercase;
         }
-        .btn-add:active { background: #28b840; }
         .btn-danger { color: var(--danger); }
-        
-        .clear-list-btn {
-            background: none;
-            border: 1px solid var(--danger);
-            color: var(--danger);
-            font-size: 0.7rem;
-            padding: 4px 8px;
-            border-radius: 4px;
-        }
+        .clear-list-btn { background: none; border: 1px solid var(--danger); color: var(--danger); font-size: 0.7rem; padding: 4px 8px; border-radius: 4px; }
     </style>
 </head>
-<body>
-
-    <div class="top-section">
+<body onclick=""> <div class="top-section">
         <div class="display-area">
             <div id="huf-input">0 HUF</div>
             <div id="pln-result">≈ 0.00 PLN</div>
@@ -145,8 +124,7 @@
             <button class="clear-list-btn" onclick="clearAll()">WYCZYŚĆ</button>
         </div>
 
-        <div class="history-list" id="history-box">
-            </div>
+        <div class="history-list" id="history-box"></div>
     </div>
 
     <div class="numpad">
@@ -166,9 +144,19 @@
     </div>
 
 <script>
-    const RATE = 0.011; // 1 HUF = 0.011 PLN
+    // Blokada double-tap zoom na poziomie iOS
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', function (event) {
+        const now = (new Date()).getTime();
+        if (now - lastTouchEnd <= 300) {
+            event.preventDefault();
+        }
+        lastTouchEnd = now;
+    }, false);
+
+    const RATE = 0.011; 
     let currentInput = "";
-    let logs = JSON.parse(localStorage.getItem('huf_v3')) || [];
+    let logs = JSON.parse(localStorage.getItem('huf_v4')) || [];
 
     function press(n) {
         if (currentInput.length < 10) {
@@ -211,14 +199,13 @@
     }
 
     function save() {
-        localStorage.setItem('huf_v3', JSON.stringify(logs));
+        localStorage.setItem('huf_v4', JSON.stringify(logs));
         renderList();
     }
 
     function renderList() {
         const box = document.getElementById('history-box');
         const total = document.getElementById('total-val');
-        
         box.innerHTML = logs.map(i => `
             <div class="item">
                 <span><b>${i.h.toLocaleString()}</b> <small style="color:var(--text-dim)">HUF</small></span>
@@ -228,20 +215,12 @@
                 </span>
             </div>
         `).join('');
-
         const sum = logs.reduce((a, b) => a + b.p, 0);
         total.innerText = sum.toFixed(2) + " PLN";
     }
 
     function haptic(ms) {
         if (window.navigator.vibrate) window.navigator.vibrate(ms);
-    }
-
-    // Offline mode
-    if ('serviceWorker' in navigator) {
-        const sw = `self.addEventListener('install',e=>e.waitUntil(caches.open('v3').then(c=>c.addAll(['./']))));self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));`;
-        const b = new Blob([sw], {type: 'application/javascript'});
-        navigator.serviceWorker.register(URL.createObjectURL(b));
     }
 
     renderList();
