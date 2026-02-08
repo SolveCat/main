@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>HUF Calc Ultra</title>
+    <title>HUF Calc Pro</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <style>
@@ -17,8 +17,15 @@
             --text-dim: #a0a0a0;
         }
 
+        /* Blokada zaznaczania tekstu i domyślnych zachowań */
+        * {
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Roboto", sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
             background-color: var(--bg);
             color: var(--text-main);
             margin: 0;
@@ -26,12 +33,11 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            touch-action: pan-y;
+            touch-action: none; /* Całkowita blokada gestów przeglądarki */
         }
 
-        /* GÓRA - Wyświetlacz i Lista */
         .top-section {
-            height: 45vh; /* Zmniejszone nieco na rzecz klawiatury */
+            height: 45vh;
             display: flex;
             flex-direction: column;
             padding-top: env(safe-area-inset-top);
@@ -44,15 +50,14 @@
         }
 
         #huf-input { 
-            font-size: 4rem; /* Ekstra duże cyfry wejściowe */
+            font-size: 4rem; 
             font-weight: 700; 
             margin: 0; 
             white-space: nowrap; 
             overflow: hidden;
-            color: var(--text-main);
         }
         #pln-result { 
-            font-size: 2rem; /* Bardzo wyraźny wynik */
+            font-size: 2rem; 
             color: var(--accent); 
             margin-top: 5px; 
             font-weight: 600; 
@@ -67,7 +72,6 @@
             border-bottom: 1px solid #333;
         }
 
-        .total-label { font-size: 1rem; color: var(--text-dim); font-weight: 500; }
         .total-value { font-size: 1.8rem; font-weight: 800; color: var(--accent); }
 
         .history-list {
@@ -75,6 +79,7 @@
             overflow-y: auto;
             padding: 0 20px;
             background: var(--bg);
+            touch-action: pan-y; /* Pozwala tylko na przewijanie listy */
         }
 
         .item {
@@ -83,10 +88,10 @@
             align-items: center;
             padding: 18px 0;
             border-bottom: 1px solid #2c2c2e;
-            font-size: 1.3rem; /* Większe litery na liście */
+            font-size: 1.3rem;
         }
 
-        /* DÓŁ - NumPad (55% ekranu dla wygody) */
+        /* DÓŁ - NumPad */
         .numpad {
             height: 55vh;
             display: grid;
@@ -95,18 +100,21 @@
             gap: 2px;
             background: #444;
             padding-bottom: env(safe-area-inset-bottom);
+            touch-action: none;
         }
 
         button {
             border: none;
             background: var(--btn-num);
             color: white;
-            font-size: 2.5rem; /* Gigantyczne cyfry na przyciskach */
+            font-size: 2.5rem;
             font-weight: 600;
             display: flex;
             align-items: center;
             justify-content: center;
+            /* To zapobiega wywoływaniu klawiatury i zoomu */
             touch-action: manipulation;
+            outline: none;
         }
 
         button:active { background: #444; }
@@ -116,7 +124,7 @@
             color: black; 
             grid-column: span 3;
             font-weight: 800;
-            font-size: 1.8rem; /* Wielki tekst przycisku DODAJ */
+            font-size: 1.8rem;
             text-transform: uppercase;
         }
         .btn-danger { color: var(--danger); font-weight: 800; }
@@ -128,7 +136,6 @@
             font-size: 0.9rem; 
             padding: 8px 12px; 
             border-radius: 6px;
-            font-weight: bold;
         }
     </style>
 </head>
@@ -142,8 +149,8 @@
 
         <div class="summary-bar">
             <div>
-                <span class="total-label">SUMA:</span>
-                <span class="total-value" id="total-val">0.00</span>
+                <span id="total-val" class="total-value">0.00</span>
+                <span style="color:var(--text-dim)"> PLN</span>
             </div>
             <button class="clear-list-btn" onclick="clearAll()">WYCZYŚĆ</button>
         </div>
@@ -152,33 +159,32 @@
     </div>
 
     <div class="numpad">
-        <button onclick="press('1')">1</button>
-        <button onclick="press('2')">2</button>
-        <button onclick="press('3')">3</button>
-        <button onclick="press('4')">4</button>
-        <button onclick="press('5')">5</button>
-        <button onclick="press('6')">6</button>
-        <button onclick="press('7')">7</button>
-        <button onclick="press('8')">8</button>
-        <button onclick="press('9')">9</button>
-        <button class="btn-danger" onclick="clr()">C</button>
-        <button onclick="press('0')">0</button>
-        <button class="btn-danger" onclick="del()">⌫</button>
-        <button class="btn-add" onclick="addExpense()">Dodaj do listy (+)</button>
+        <button type="button" onclick="press('1')">1</button>
+        <button type="button" onclick="press('2')">2</button>
+        <button type="button" onclick="press('3')">3</button>
+        <button type="button" onclick="press('4')">4</button>
+        <button type="button" onclick="press('5')">5</button>
+        <button type="button" onclick="press('6')">6</button>
+        <button type="button" onclick="press('7')">7</button>
+        <button type="button" onclick="press('8')">8</button>
+        <button type="button" onclick="press('9')">9</button>
+        <button type="button" class="btn-danger" onclick="clr()">C</button>
+        <button type="button" onclick="press('0')">0</button>
+        <button type="button" class="btn-danger" onclick="del()">⌫</button>
+        <button type="button" class="btn-add" onclick="addExpense()">Dodaj do listy (+)</button>
     </div>
 
 <script>
-    // Blokada double-tap zoom
-    let lastTouchEnd = 0;
-    document.addEventListener('touchend', function (event) {
-        const now = (new Date()).getTime();
-        if (now - lastTouchEnd <= 300) event.preventDefault();
-        lastTouchEnd = now;
-    }, false);
+    // Globalna blokada menu kontekstowego (prawy klik/długie przytrzymanie)
+    window.oncontextmenu = function(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        return false;
+    };
 
     const RATE = 0.011; 
     let currentInput = "";
-    let logs = JSON.parse(localStorage.getItem('huf_ultra_v5')) || [];
+    let logs = JSON.parse(localStorage.getItem('huf_ultra_v6')) || [];
 
     function press(n) {
         if (currentInput.length < 10) {
@@ -221,7 +227,7 @@
     }
 
     function save() {
-        localStorage.setItem('huf_ultra_v5', JSON.stringify(logs));
+        localStorage.setItem('huf_ultra_v6', JSON.stringify(logs));
         renderList();
     }
 
@@ -233,8 +239,8 @@
             <div class="item">
                 <span><strong>${i.h.toLocaleString()}</strong> <small style="color:var(--text-dim); font-size:0.8rem;">HUF</small></span>
                 <span>
-                    <span style="font-weight:800; color:var(--accent)">${i.p.toFixed(2)}</span> <small style="font-size:0.8rem">PLN</small>
-                    <button onclick="removeLog(${i.id})" style="background:none; color:var(--danger); font-size:1.8rem; padding:0 0 0 20px; display:inline; font-weight:bold;">✕</button>
+                    <span style="font-weight:800; color:var(--accent)">${i.p.toFixed(2)}</span>
+                    <button type="button" onclick="removeLog(${i.id})" style="background:none; color:var(--danger); font-size:1.8rem; padding:0 0 0 20px; display:inline; font-weight:bold;">✕</button>
                 </span>
             </div>
         `).join('');
