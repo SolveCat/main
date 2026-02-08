@@ -1,135 +1,238 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
- <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
-    <title>SolveCat</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>HUF Calc Mobile</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
+        :root {
+            --bg: #000000;
+            --panel: #1c1c1e;
+            --accent: #32d74b;
+            --danger: #ff453a;
+            --btn-gray: #2c2c2e;
+            --text: #ffffff;
+            --text-dim: #8e8e93;
         }
-        /* Custom style to prevent blurring on pixel art images */
-        .pixelated-img {
-            image-rendering: optimizeSpeed; /* Older versions of FF */
-            image-rendering: -moz-crisp-edges; /* Firefox */
-            image-rendering: -o-crisp-edges; /* Opera */
-            image-rendering: -webkit-optimize-contrast; /* Webkit (Non-standard property) */
-            image-rendering: pixelated; /* CSS4 Proposed */
-            -ms-interpolation-mode: nearest-neighbor; /* IE8+ */
+
+        body {
+            font-family: -apple-system, system-ui, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* Blokuje przesuwanie całej strony */
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Górna sekcja - Wyświetlacz */
+        .header {
+            padding: calc(env(safe-area-inset-top) + 20px) 20px 20px;
+            text-align: right;
+            background: linear-gradient(to bottom, #2c2c2e, #1c1c1e);
+        }
+        #huf-input { font-size: 3.5rem; font-weight: 200; margin: 0; }
+        #pln-result { font-size: 1.5rem; color: var(--accent); margin-top: 5px; font-weight: 400; }
+
+        /* Podsumowanie */
+        .summary-bar {
+            background: var(--panel);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 0.5px solid #38383a;
+        }
+        .summary-info { display: flex; flex-direction: column; }
+        .summary-label { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+        .summary-value { font-size: 1.2rem; font-weight: 600; color: var(--accent); }
+
+        /* Lista wydatków - przewijalna */
+        .history {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 20px;
+            -webkit-overflow-scrolling: touch;
+        }
+        .item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 0.5px solid #38383a;
+        }
+        .item-left { display: flex; flex-direction: column; }
+        .item-time { font-size: 0.7rem; color: var(--text-dim); }
+        .item-huf { font-size: 1rem; }
+        .item-pln { font-weight: bold; color: var(--text); }
+
+        /* NumPad - przyklejony do dołu */
+        .numpad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1px;
+            background: #38383a;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        button {
+            background: var(--panel);
+            border: none;
+            color: white;
+            padding: 22px;
+            font-size: 1.6rem;
+            font-weight: 400;
+        }
+        button:active { background: #3a3a3c; }
+        .btn-add { 
+            background: var(--accent); 
+            color: black; 
+            grid-column: span 3; 
+            font-weight: bold; 
+            font-size: 1.2rem;
+            padding: 18px;
+        }
+        .btn-add:active { background: #28b840; }
+        .btn-special { color: var(--danger); font-size: 1.2rem; }
+
+        /* Przycisk usuwania */
+        .delete-btn {
+            background: rgba(255, 69, 58, 0.15);
+            color: var(--danger);
+            border-radius: 6px;
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            margin-left: 10px;
         }
     </style>
 </head>
-<body class="bg-black flex items-center justify-center min-h-screen transition-all duration-200" id="body-container">
-    <!-- Main container for all content, handling overall positioning -->
-    <div id="main-app-container" class="flex flex-col items-center justify-center w-full transition-all duration-200">
-        <!-- Container for the logo and text images -->
-        <div id="logo-text-container" class="flex flex-col items-center justify-center transition-all duration-200">
-            <!-- SolveCat Logo Image (click event, with hover animation, and faster transitions) -->
-            <img id="logo-image" src="https://i.postimg.cc/CxyGDRg5/pixil-frame-0-4.png" alt="SolveCat Main Logo" class="mx-auto mb-0 w-64 h-auto rounded-lg pixelated-img transition-all duration-200 hover:scale-105 cursor-pointer">
-            <!-- SolveCat Text Image (with faster transitions) -->
-            <img id="text-image" src="https://i.postimg.cc/q77bztrY/pixil-frame-0-2.png" alt="SolveCat Text" class="mx-auto rounded-lg max-w-lg h-auto pixelated-img mt-[-16px] transition-all duration-200">
-        </div>
+<body>
 
-        <!-- Container for the 2x2 grid of buttons -->
-        <!-- Will show/hide with opacity transition. Duration is 200ms. -->
-        <div id="buttons-container" class="grid grid-cols-2 gap-4 mt-8 transition-opacity duration-200 opacity-0 hidden">
-            <!-- Button 1 (with hover scale animation) -->
-<a href="https://www.google.com/" target="_blank">
-            <img src="https://i.postimg.cc/90r7NThZ/1750892337815.png" alt="Button 1" class="w-[200px] h-[64px] pixelated-img rounded-lg cursor-pointer transition-transform duration-200 hover:scale-105">
-</a>
-            <!-- Button 2 (with hover scale animation) -->
-            <img src="https://i.postimg.cc/0y7gTB52/1750891867448.png" alt="Button 2" class="w-[200px] h-[64px] pixelated-img rounded-lg cursor-pointer transition-transform duration-200 hover:scale-105">
-            <!-- Button 3 (with hover scale animation) -->
-            <img src="https://i.postimg.cc/0y7gTB52/1750891867448.png" alt="Button 3" class="w-[200px] h-[64px] pixelated-img rounded-lg cursor-pointer transition-transform duration-200 hover:scale-105">
-            <!-- Button 4 (with hover scale animation) -->
-            <img src="https://i.postimg.cc/0y7gTB52/1750891867448.png" alt="Button 4" class="w-[200px] h-[64px] pixelated-img rounded-lg cursor-pointer transition-transform duration-200 hover:scale-105">
-        </div>
+    <div class="header">
+        <div id="huf-input">0</div>
+        <div id="pln-result">≈ 0.00 PLN</div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Get references to the elements
-            const logoImage = document.getElementById('logo-image');
-            const textImage = document.getElementById('text-image');
-            const logoTextContainer = document.getElementById('logo-text-container');
-            const mainAppContainer = document.getElementById('main-app-container');
-            const buttonsContainer = document.getElementById('buttons-container');
+    <div class="summary-bar">
+        <div class="summary-info">
+            <span class="summary-label">Suma (PLN)</span>
+            <span class="summary-value" id="total-val">0.00</span>
+        </div>
+        <div onclick="clearAll()" style="color: var(--danger); font-size: 0.8rem; font-weight: 500;">WYCZYŚĆ LISTĘ</div>
+    </div>
 
-            let isMoved = false; // State to track the current position
+    <div class="history" id="history-box">
+        </div>
 
-            // Add a click event listener to the logo image
-            logoImage.addEventListener('click', () => {
-                if (!isMoved) {
-                    // Current state is centered, "morph" to top-centered with text to the right
-                    
-                    // Main App Container Positioning: Push to top and keep horizontally centered
-                    mainAppContainer.classList.remove('justify-center');
-                    mainAppContainer.classList.add('items-center', 'pt-16'); 
+    <div class="numpad">
+        <button onclick="num('1')">1</button>
+        <button onclick="num('2')">2</button>
+        <button onclick="num('3')">3</button>
+        <button onclick="num('4')">4</button>
+        <button onclick="num('5')">5</button>
+        <button onclick="num('6')">6</button>
+        <button onclick="num('7')">7</button>
+        <button onclick="num('8')">8</button>
+        <button onclick="num('9')">9</button>
+        <button class="btn-special" onclick="clr()">C</button>
+        <button onclick="num('0')">0</button>
+        <button class="btn-special" onclick="del()">⌫</button>
+        <button class="btn-add" onclick="add()">DODAJ WYDATEK (+)</button>
+    </div>
 
-                    // Logo/Text Container Layout: Change to horizontal (flex-row) and keep elements centered within it
-                    logoTextContainer.classList.remove('flex-col');
-                    logoTextContainer.classList.add('flex-row', 'items-center', 'justify-center'); 
+<script>
+    const RATE = 0.011; 
+    let currentInput = "";
+    let logs = JSON.parse(localStorage.getItem('huf_mobile_v1')) || [];
 
-                    // Adjust image sizes for the new layout (maintain aspect ratio with h-auto)
-                    logoImage.classList.remove('w-64');
-                    logoImage.classList.add('w-32'); // Smaller width
+    function num(n) {
+        if (currentInput.length < 9) {
+            currentInput += n;
+            update();
+            if (window.navigator.vibrate) window.navigator.vibrate(5);
+        }
+    }
 
-                    // Adjust text image position and size (maintains aspect ratio with h-auto)
-                    textImage.classList.remove('mt-[-16px]'); 
-                    textImage.classList.add('ml-4', 'mt-0'); 
-                    textImage.classList.remove('max-w-lg');
-                    textImage.classList.add('max-w-xs'); 
+    function clr() { currentInput = ""; update(); }
+    
+    function del() {
+        currentInput = currentInput.slice(0, -1);
+        update();
+    }
 
-                    // Show buttons with fade-in animation
-                    buttonsContainer.classList.remove('hidden'); 
-                    // Small delay to ensure display property is applied before opacity transition starts
-                    setTimeout(() => { 
-                        buttonsContainer.classList.remove('opacity-0');
-                        buttonsContainer.classList.add('opacity-100');
-                    }, 10); 
+    function update() {
+        const h = parseInt(currentInput) || 0;
+        const p = (h * RATE).toFixed(2);
+        document.getElementById('huf-input').innerText = h.toLocaleString();
+        document.getElementById('pln-result').innerText = "≈ " + p + " PLN";
+    }
 
-                } else {
-                    // Current state is top-centered, "morph" back to original centered
-                    
-                    // Hide buttons with fade-out animation first
-                    buttonsContainer.classList.remove('opacity-100');
-                    buttonsContainer.classList.add('opacity-0');
-                    
-                    // Add 'hidden' after the transition completes (timeout remains 200ms)
-                    setTimeout(() => { 
-                        buttonsContainer.classList.add('hidden');
-                        
-                        // Revert Main App Container Positioning to full centering 
-                        mainAppContainer.classList.remove('items-center', 'pt-16');
-                        mainAppContainer.classList.add('justify-center');
+    function add() {
+        if (!currentInput || currentInput === "0") return;
+        const h = parseInt(currentInput);
+        const p = parseFloat((h * RATE).toFixed(2));
+        const now = new Date();
+        const time = now.getHours() + ":" + String(now.getMinutes()).padStart(2, '0');
+        
+        logs.unshift({id: Date.now(), h, p, time});
+        save();
+        clr();
+        if (window.navigator.vibrate) window.navigator.vibrate(20);
+    }
 
-                        // Revert Logo/Text Container Layout to vertical (flex-col)
-                        logoTextContainer.classList.remove('flex-row', 'items-center', 'justify-center');
-                        logoTextContainer.classList.add('flex-col');
+    function remove(id) {
+        logs = logs.filter(i => i.id !== id);
+        save();
+    }
 
-                        // Revert image sizes (maintain aspect ratio with h-auto)
-                        logoImage.classList.remove('w-32');
-                        logoImage.classList.add('w-64'); // Restore original width
+    function clearAll() {
+        if(confirm("Wyczyścić wszystkie wydatki?")) {
+            logs = [];
+            save();
+        }
+    }
 
-                        // Revert text image position and size (maintains aspect ratio with h-auto)
-                        textImage.classList.remove('ml-4', 'mt-0'); 
-                        textImage.classList.add('mt-[-16px]'); 
-                        textImage.classList.remove('max-w-xs');
-                        textImage.classList.add('max-w-lg'); 
+    function save() {
+        localStorage.setItem('huf_mobile_v1', JSON.stringify(logs));
+        render();
+    }
 
-                    }, 200); 
+    function render() {
+        const box = document.getElementById('history-box');
+        const total = document.getElementById('total-val');
+        
+        box.innerHTML = logs.map(i => `
+            <div class="item">
+                <div class="item-left">
+                    <span class="item-time">${i.time}</span>
+                    <span class="item-huf">${i.h.toLocaleString()} HUF</span>
+                </div>
+                <div>
+                    <span class="item-pln">${i.p.toFixed(2)} PLN</span>
+                    <span class="delete-btn" onclick="remove(${i.id})">✕</span>
+                </div>
+            </div>
+        `).join('');
 
-                }
+        const sum = logs.reduce((a, b) => a + b.p, 0);
+        total.innerText = sum.toFixed(2);
+    }
 
-                // Toggle the state
-                isMoved = !isMoved;
-            });
-        });
-    </script>
+    // Prosty Service Worker dla Offline
+    if ('serviceWorker' in navigator) {
+        const sw = `const C='v1';self.addEventListener('install',e=>e.waitUntil(caches.open(C).then(c=>c.addAll(['./']))));self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));`;
+        const blob = new Blob([sw], {type: 'application/javascript'});
+        navigator.serviceWorker.register(URL.createObjectURL(blob));
+    }
+
+    render();
+    update();
+</script>
+
 </body>
 </html>
-
